@@ -1,30 +1,59 @@
 // constants/Theme.ts
+import { Platform } from "react-native";
+
 export const Colors = {
-  bg: "#0A111B",
+  // Brand (Electric Fusion)
+  gradA: "#00F0FF",
+  gradB: "#00FF81",
+  electricBlue: "#00F0FF",
+  neonGreen: "#00FF81",
+  amber: "#FFA900",
+  orange: "#FF6800",
+  heartRed: "#FF4B4B",
+
+  // UI
   text: "#0E1525",
-  white: "#FFFFFF",
-  gradA: "#B3E5FC",
-  gradB: "#81D4FA",
-  gradC: "#6FD1E6",
-  peach: "#FFCBA4",
-  aqua: "#9BE7FF",
-  lime: "#C6F6D5",
+  subtext: "rgba(14,21,37,0.75)",
+  surface: "#FFFFFF",
+  border: "#E6EDF3",
+  bg: "#F7FBFE",
 };
 
 export const Fonts = {
-  heading: "Manrope_700Bold",
-  body: "Lato_400Regular",
-  bodyBold: "Lato_700Bold",
+  // fallback to system if Google fonts aren’t loaded yet
+  heading: "Poppins_700Bold",
+  body: "Poppins_400Regular",
 };
 
-export const Radii = { sm: 12, md: 18, lg: 24, xl: 28, pill: 999 };
+// NEW — Rounded corner sizes
+export const Radii = {
+  sm: 10,
+  md: 16,
+  lg: 18,
+  xl: 24,
+};
 
+// NEW — Soft shadow styles
 export const Shadow = {
-  soft: {
-    shadowColor: "#000",
-    shadowOpacity: 0.14,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8,
-  },
+  soft: Platform.select({
+    ios: {
+      shadowColor: "#000",
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 8 },
+    },
+    android: {
+      elevation: 6,
+    },
+  }) as object,
 };
+
+export type ThemeType = {
+  Colors: typeof Colors;
+  Fonts: typeof Fonts;
+  Radii: typeof Radii;
+  Shadow: typeof Shadow;
+};
+
+const Theme: ThemeType = { Colors, Fonts, Radii, Shadow };
+export default Theme;

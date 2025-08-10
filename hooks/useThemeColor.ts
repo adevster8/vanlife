@@ -1,21 +1,30 @@
-/**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
- */
+// hooks/useThemeColor.ts
+// Guarded hook: never throws if a key is missing.
 
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import Colors, { ColorName, ThemeName } from "../constants/Colors";
+import { useColorScheme } from "./useColorScheme";
 
-export function useThemeColor(
-  props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark
-) {
-  const theme = useColorScheme() ?? 'light';
-  const colorFromProps = props[theme];
+type Args = {
+  light?: string;
+  dark?: string;
+  name: ColorName;
+};
 
-  if (colorFromProps) {
-    return colorFromProps;
-  } else {
-    return Colors[theme][colorName];
+export function useThemeColor({ light, dark, name }: Args) {
+  const scheme = (useColorScheme?.() ?? "light") as ThemeName;
+
+  // If a specific color value was provided via props, prefer it
+  if (scheme === "light" && light) return light;
+  if (scheme === "dark" && dark) return dark;
+
+  // Safe fallback lookups
+  const palette = Colors[scheme] ?? Colors.light;
+
+  // If the requested key isn't in the palette, fall back to something sane
+  if (!name || !(name in palette)) {
+    // Background when used for containers, text otherwise
+    return name === "background" ? palette.background : palette.text;
   }
+
+  return palette[name];
 }

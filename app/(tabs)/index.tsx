@@ -5,6 +5,7 @@ import React from "react";
 import { Platform, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// keep these, per your project
 import PrimaryButton from "../../components/ui/PrimaryButton";
 import { Colors, Fonts } from "../../constants/Theme";
 
@@ -47,6 +48,7 @@ export default function HomeScreen() {
             transition={{ delay: 600, duration: 600 }}
             style={styles.buttons}
           >
+            {/* Tabs screens are directly at /profile and /settings */}
             <Link asChild href="/profile">
               <PrimaryButton title="Go to Profile" />
             </Link>
