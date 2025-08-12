@@ -4,6 +4,8 @@ import { FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BrandHeader from "../../components/ui/BrandHeader";
 
+
+
 export default function Messages() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F7FAFF" }}>

@@ -6,6 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import PersonProfile, { Person } from "../../components/profile/PersonProfile";
 import EdgeArrows from "../../components/ui/EdgeArrows";
 
+
 // ---- mock people for now ----
 const PEOPLE: Person[] = [
   {

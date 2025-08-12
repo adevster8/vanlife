@@ -3,6 +3,8 @@ import { Dimensions, FlatList, Image, StyleSheet, Text, View } from "react-nativ
 import { SafeAreaView } from "react-native-safe-area-context";
 import BrandHeader from "../../components/ui/BrandHeader";
 
+
+
 type Match = {
   id: string;
   name: string;
