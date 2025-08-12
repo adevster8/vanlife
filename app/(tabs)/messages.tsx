@@ -1,59 +1,55 @@
+// app/(tabs)/messages.tsx
 import React from "react";
-import { View, Text, FlatList, StyleSheet, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { FlatList, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import BrandHeader from "../../components/ui/BrandHeader";
 
-const CHATS = [
-  { id: "1", name: "Riley", last: "See you tomorrow!", time: "2m" },
-  { id: "2", name: "Jordan", last: "Coffee after the run?", time: "1h" },
-  { id: "3", name: "Sam", last: "Loved the cookout!", time: "1d" },
-];
-
-export default function MessagesScreen() {
+export default function Messages() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Messages</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F7FAFF" }}>
+      {/* Small centered logo */}
+      <View style={{ paddingTop: 4, marginBottom: 6 }}>
+        <BrandHeader />
+      </View>
+
+      {/* Page heading */}
+      <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
+        <Text style={{ fontSize: 28, fontWeight: "800", color: "#0F172A" }}>
+          Messages
+        </Text>
+      </View>
+
       <FlatList
-        data={CHATS}
+        contentContainerStyle={{ padding: 12, paddingBottom: 16 }}
+        data={[
+          { id: "1", name: "Riley", preview: "See you tomorrow!", time: "2m" },
+          { id: "2", name: "Jordan", preview: "Coffee after the run?", time: "1h" },
+          { id: "3", name: "Sam", preview: "Loved the cookout!", time: "1d" },
+        ]}
         keyExtractor={(i) => i.id}
-        ItemSeparatorComponent={() => <View style={styles.sep} />}
         renderItem={({ item }) => (
-          <View style={styles.row}>
-            <Image
-              source={require("../../assets/images/icon.png")}
-              style={styles.avatar}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.preview}>{item.last}</Text>
-            </View>
-            <Text style={styles.time}>{item.time}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          <View
+            style={{
+              backgroundColor: "white",
+              padding: 16,
+              borderRadius: 16,
+              marginBottom: 12,
+              shadowColor: "#000",
+              shadowOpacity: 0.06,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 6 },
+              borderWidth: 1,
+              borderColor: "rgba(2,6,23,0.06)",
+            }}
+          >
+            <Text style={{ fontWeight: "800", fontSize: 17, color: "#0F172A" }}>
+              {item.name}
+            </Text>
+            <Text style={{ color: "#475569", marginTop: 4 }}>{item.preview}</Text>
           </View>
         )}
+        showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC", padding: 16 },
-  header: { fontSize: 22, fontWeight: "800", color: "#0F172A", marginBottom: 8 },
-  sep: { height: 8 },
-  row: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    shadowColor: "#0ea5e9",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 1,
-  },
-  avatar: { width: 44, height: 44, borderRadius: 22 },
-  name: { fontWeight: "700", color: "#0F172A" },
-  preview: { color: "#64748B", marginTop: 2 },
-  time: { color: "#94A3B8", marginRight: 6, fontSize: 12 },
-});

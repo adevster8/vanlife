@@ -1,85 +1,70 @@
-// app/(tabs)/_layout.tsx
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { Tabs } from "expo-router";
-import React from "react";
-import AnimatedJeepIcon from "../../components/AnimatedJeepIcon";
+import { Platform } from "react-native";
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#0F172A",
-        tabBarInactiveTintColor: "#64748B",
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: "#0EA5E9",
+        tabBarInactiveTintColor: "rgba(15,23,42,0.55)",
         tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopWidth: 0.5,
-          borderTopColor: "#E5E7EB",
-          paddingBottom: 4,
-          height: 60,
+          position: "absolute",
+          height: 64,
+          borderTopWidth: 0,
+          backgroundColor: "transparent",
+          marginHorizontal: 12,
+          marginBottom: Platform.OS === "ios" ? 10 : 8,
+          borderRadius: 22,
+          overflow: "hidden",
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "600",
-        },
+        tabBarBackground: () => <BlurView tint="light" intensity={35} style={{ flex: 1 }} />,
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="discover"
-        options={{
-          title: "Discover",
-          tabBarIcon: ({ color, size, focused }) => (
-            <AnimatedJeepIcon color={color} size={size} focused={focused} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="meetups"
-        options={{
-          title: "Meetups",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="map-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="messages"
-        options={{
-          title: "Messages",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-circle-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      {/* 1. Discover */}
+     <Tabs.Screen
+  name="discover"
+  options={{
+    tabBarIcon: ({ color, focused }) => (
+      <Ionicons name={focused ? "compass" : "compass-outline"} size={26} color={color} />
+    ),
+  }}
+/>
+<Tabs.Screen
+  name="matches"
+  options={{
+    tabBarIcon: ({ color, focused }) => (
+      <Ionicons name={focused ? "people" : "people-outline"} size={26} color={color} />
+    ),
+  }}
+/>
+<Tabs.Screen
+  name="messages"
+  options={{
+    tabBarIcon: ({ color, focused }) => (
+      <Ionicons name={focused ? "chatbubbles" : "chatbubbles-outline"} size={26} color={color} />
+    ),
+  }}
+/>
+<Tabs.Screen
+  name="likes"
+  options={{
+    tabBarIcon: ({ color, focused }) => (
+      <Ionicons name={focused ? "heart" : "heart-outline"} size={26} color={color} />
+    ),
+  }}
+/>
+<Tabs.Screen
+  name="profile"
+  options={{
+    tabBarIcon: ({ color, focused }) => (
+      <Ionicons name={focused ? "person-circle" : "person-circle-outline"} size={28} color={color} />
+    ),
+  }}
+/>
     </Tabs>
   );
 }

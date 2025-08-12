@@ -1,188 +1,206 @@
+// app/(tabs)/profile.tsx
 import { Ionicons } from "@expo/vector-icons";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useState } from "react";
+import React from "react";
 import {
+    Dimensions,
+    FlatList,
     Image,
     ScrollView,
+    StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import BrandHeader from "../../components/ui/BrandHeader";
 
-const COLOR_TEXT = "#0F172A";
-const COLOR_MUTED = "#64748B";
-const COLOR_PRIMARY = "#0EA5E9";
-const CARD_BORDER = "rgba(2,6,23,0.06)";
-const BG_APP = "#F8FAFC";
+const W = Dimensions.get("window").width;
+const PAD = 16;
+const CARD = (W - PAD * 2 - 8 * 2) / 3; // 3-column photo grid
+
+// ----- Mock profile data (swap with API later) -----
+const profile = {
+  name: "Jordan",
+  age: 27,
+  city: "Austin",
+  countryFlag: "🇺🇸",
+  avatar: "https://i.pravatar.cc/200?img=32",
+  verified: true,
+  languages: ["English", "Spanish"],
+  joined: "Feb 2025",
+  photos: [
+    "https://images.unsplash.com/photo-1520975682031-5a97f1c7b07d?q=80&w=1200",
+    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200",
+    "https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?q=80&w=1200",
+    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200",
+    "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?q=80&w=1200",
+    "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1200",
+    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1200",
+    "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=1200",
+    "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=1200",
+  ],
+  about:
+    "Community builder and weekend trail runner. I help people find easy, real-world meetups that don’t feel awkward. Big on sunrise jogs, dog parks, and coffee after.",
+  interests: [
+    "trail runs",
+    "dogs",
+    "coffee",
+    "photography",
+    "cold plunge",
+    "campfires",
+    "board games",
+  ],
+  prompts: [
+    { q: "Perfect Saturday?", a: "Trail loop at sunrise, farmer’s market, then iced latte." },
+    { q: "Green flag I look for", a: "Shows up on time and suggests a meetup idea. 😄" },
+    { q: "Unpopular opinion", a: "Running in light rain > treadmill every time." },
+  ],
+  meetupIdeas: [
+    { icon: "walk", text: "Lady Bird Lake jog" },
+    { icon: "cafe", text: "Try that new roastery" },
+    { icon: "paw", text: "Dog park + picnic" },
+  ],
+};
 
 export default function Profile() {
-  const [following, setFollowing] = useState(false);
+  const tabBarHeight = useBottomTabBarHeight();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={{ flex: 1, backgroundColor: BG_APP }}>
-      {/* Header */}
-      <LinearGradient
-        colors={["#cce4ff", "#fdfcff"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{
-          height: 220,
-          borderBottomLeftRadius: 28,
-          borderBottomRightRadius: 28,
-        }}
+    <SafeAreaView style={styles.safe}>
+      {/* Top bar with brand logo centered */}
+      <View style={styles.topBar}>
+        <TouchableOpacity activeOpacity={0.7}>
+          <Ionicons name="settings-outline" size={26} color="#0F172A" />
+        </TouchableOpacity>
+
+        <BrandHeader />
+
+        <TouchableOpacity activeOpacity={0.7}>
+          <Ionicons name="notifications-outline" size={26} color="#0F172A" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: tabBarHeight + insets.bottom + 24 }}
       >
-        <View
-          style={{
-            paddingTop: 60,
-            paddingHorizontal: 20,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+        {/* Header block with gradient + avatar + identity */}
+        <LinearGradient
+          colors={["#E6F6FF", "#F7FAFF"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
         >
-          <Ionicons name="settings-outline" size={24} color={COLOR_TEXT} />
-          <Image
-            // path from app/(tabs) -> ../../assets/images
-            source={require("../../assets/images/logo-blue.png")}
-            style={{ width: 36, height: 36, resizeMode: "contain" }}
-          />
-          <Ionicons name="notifications-outline" size={24} color={COLOR_TEXT} />
-        </View>
-
-        <View style={{ alignItems: "center", marginTop: 16 }}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/200?img=5" }}
-            style={{
-              width: 96,
-              height: 96,
-              borderRadius: 999,
-              borderWidth: 3,
-              borderColor: "white",
-            }}
-          />
-          <View style={{ marginTop: 12, alignItems: "center" }}>
-            <Text style={{ fontWeight: "700", fontSize: 20, color: COLOR_TEXT }}>
-              Jordan Bennett
+          <View style={styles.identityWrap}>
+            <Image
+              source={{ uri: profile.avatar }}
+              style={styles.heroAvatar}
+            />
+            <View style={styles.nameRow}>
+              <Text style={styles.nameText}>
+                {profile.name} {profile.age}
+              </Text>
+              {profile.verified && (
+                <Ionicons name="shield-checkmark" size={18} color="#0EA5E9" style={{ marginLeft: 8 }} />
+              )}
+            </View>
+            <Text style={styles.cityText}>
+              {profile.city} {profile.countryFlag}
             </Text>
-            <Text style={{ color: COLOR_MUTED }}>@jordan.moves</Text>
           </View>
-
-          <TouchableOpacity
-            onPress={() => setFollowing(!following)}
-            style={{
-              marginTop: 12,
-              backgroundColor: following ? "#E2E8F0" : COLOR_PRIMARY,
-              paddingHorizontal: 18,
-              paddingVertical: 10,
-              borderRadius: 12,
-            }}
-          >
-            <Text style={{ fontWeight: "700", color: following ? COLOR_TEXT : "white" }}>
-              {following ? "Following" : "Follow"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
-      {/* Content */}
-      <ScrollView contentContainerStyle={{ padding: 20, rowGap: 16 }}>
-        {/* About */}
-        <Card>
-          <Text style={{ fontWeight: "700", fontSize: 18, marginBottom: 6, color: COLOR_TEXT }}>
-            About
-          </Text>
-          <Text style={{ color: COLOR_TEXT, lineHeight: 20 }}>
-            Community builder. Weekend trail runner. Helping people find real-world meetups
-            that don’t feel awkward. I host monthly beginner-friendly runs and coffee chats.
-          </Text>
-        </Card>
-
-        {/* Stats */}
-        <Card style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <Stat icon="walk-outline" label="Meetups" value="27" />
-          <Stat icon="people-outline" label="Members" value="412" />
-          <Stat icon="star-outline" label="Rating" value="4.9" />
-        </Card>
-
-        {/* Upcoming */}
-        <Card>
-          <Text style={{ fontWeight: "700", fontSize: 18, marginBottom: 8, color: COLOR_TEXT }}>
-            Upcoming
-          </Text>
-          <ListItem
-            title="Saturday Sunrise Jog"
-            subtitle="This Sat • 7:00 AM • Lakeview Loop"
-            icon="time-outline"
-          />
-          <ListItem
-            title="Cold Plunge + Coffee"
-            subtitle="Sun • 9:30 AM • Riverfront"
-            icon="cafe-outline"
-          />
-          <ListItem
-            title="New Member Q&A"
-            subtitle="Wed • 6:00 PM • Online"
-            icon="chatbubble-ellipses-outline"
-          />
-        </Card>
+        </LinearGradient>
 
         {/* Badges */}
-        <Card>
-          <Text style={{ fontWeight: "700", fontSize: 18, marginBottom: 8, color: COLOR_TEXT }}>
-            Badges
-          </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-            <Badge icon="sparkles-outline" text="Community Leader" />
-            <Badge icon="shield-checkmark-outline" text="Verified Host" />
-            <Badge icon="leaf-outline" text="Outdoors" />
+        <SectionCard style={{ marginTop: -44, paddingVertical: 16, paddingHorizontal: 16 }}>
+          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+            <Badge icon="home" label="Home Base" value={profile.city} />
+            <View style={{ width: 12 }} />
+            <Badge icon="chatbubbles" label="Languages" value={profile.languages.join(", ")} />
+            <View style={{ width: 12 }} />
+            <Badge icon="calendar" label="Joined" value={profile.joined} />
           </View>
-        </Card>
+        </SectionCard>
 
-        {/* CTA */}
-        <TouchableOpacity
-          style={{
-            backgroundColor: COLOR_PRIMARY,
-            paddingVertical: 14,
-            borderRadius: 14,
-            alignItems: "center",
-            shadowColor: "#0ea5e9",
-            shadowOpacity: 0.3,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 6 },
-          }}
-          onPress={() => {}}
+        {/* Photos */}
+        <SectionTitle>Photos</SectionTitle>
+        <SectionCard style={{ paddingTop: 12 }}>
+          <FlatList
+            data={profile.photos.slice(0, 9)}
+            keyExtractor={(uri, idx) => `${idx}-${uri}`}
+            numColumns={3}
+            columnWrapperStyle={{ gap: 8 }}
+            ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+            renderItem={({ item }) => (
+              <Image
+                source={{ uri: item }}
+                style={{ width: CARD, height: CARD, borderRadius: 12, backgroundColor: "#E5E7EB" }}
+              />
+            )}
+            scrollEnabled={false}
+          />
+        </SectionCard>
+
+        {/* About */}
+        <SectionTitle>About</SectionTitle>
+        <SectionCard>
+          <Text style={{ color: "#0F172A", lineHeight: 22 }}>{profile.about}</Text>
+        </SectionCard>
+
+        {/* Get to Know Me */}
+        <SectionTitle>Get to Know Me</SectionTitle>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: PAD, paddingVertical: 10 }}
         >
-          <Text style={{ fontWeight: "700", color: "white", fontSize: 16 }}>
-            Start a Meetup with Jordan
-          </Text>
-        </TouchableOpacity>
+          {profile.prompts.map((p, i) => (
+            <PromptCard key={i} q={p.q} a={p.a} />
+          ))}
+        </ScrollView>
+
+        {/* Interests */}
+        <SectionTitle>Interests</SectionTitle>
+        <SectionCard>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            {profile.interests.map((t) => (
+              <Pill key={t} text={t} />
+            ))}
+          </View>
+        </SectionCard>
+
+        {/* Meetup ideas (display only) */}
+        <SectionTitle>Meetup ideas</SectionTitle>
+        <SectionCard>
+          {profile.meetupIdeas.map((m, i) => (
+            <View key={`${m.text}-${i}`} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 8 }}>
+              <Ionicons name="location-outline" size={18} color="#FF5A00" />
+              <Text style={{ marginLeft: 8, color: "#0F172A" }}>{m.text}</Text>
+            </View>
+          ))}
+        </SectionCard>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
-/* ---------- small inline components (no JSX tricks) ---------- */
+/* ---------------- UI atoms ---------------- */
 
-function Card({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: object;
-}) {
+function SectionCard({ children, style }: { children: React.ReactNode; style?: any }) {
   return (
     <View
       style={[
         {
-          backgroundColor: "rgba(255,255,255,0.75)",
-          borderRadius: 16,
+          backgroundColor: "white",
+          borderRadius: 18,
           padding: 16,
-          borderWidth: 1,
-          borderColor: CARD_BORDER,
-          shadowColor: "#0f172a",
+          marginHorizontal: PAD,
+          shadowColor: "#000",
           shadowOpacity: 0.06,
-          shadowRadius: 10,
-          shadowOffset: { width: 0, height: 4 },
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 6 },
         },
         style,
       ]}
@@ -192,67 +210,111 @@ function Card({
   );
 }
 
-function Stat({
-  icon,
-  label,
-  value,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  value: string;
-}) {
+function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <View style={{ alignItems: "center", flex: 1 }}>
-      <Ionicons name={icon} size={20} color={COLOR_PRIMARY} />
-      <Text style={{ fontWeight: "700", marginTop: 6, color: COLOR_TEXT }}>{value}</Text>
-      <Text style={{ color: COLOR_MUTED }}>{label}</Text>
+    <Text
+      style={{
+        fontSize: 20,
+        fontWeight: "900",
+        color: "#0F172A",
+        marginHorizontal: PAD,
+        marginTop: 18,
+        marginBottom: 10,
+      }}
+    >
+      {children}
+    </Text>
+  );
+}
+
+function Badge({ icon, label, value }: { icon: any; label: string; value: string }) {
+  const COLW = (W - PAD * 2 - 16 * 2 - 12 * 2) / 3; // container paddings + 12px gaps
+  return (
+    <View style={{ alignItems: "center", width: COLW, maxWidth: COLW }}>
+      <Ionicons name={icon} size={18} color="#0F172A" />
+      <Text
+        style={{ fontWeight: "800", color: "#0F172A", marginTop: 6, textAlign: "center", lineHeight: 20 }}
+        numberOfLines={2}
+      >
+        {value}
+      </Text>
+      <Text style={{ color: "#64748B", marginTop: 2, textAlign: "center", lineHeight: 18 }} numberOfLines={1}>
+        {label}
+      </Text>
     </View>
   );
 }
 
-function ListItem({
-  title,
-  subtitle,
-  icon,
-}: {
-  title: string;
-  subtitle: string;
-  icon: keyof typeof Ionicons.glyphMap;
-}) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 10 }}>
-      <Ionicons name={icon} size={20} color={COLOR_PRIMARY} style={{ marginRight: 10 }} />
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontWeight: "700", fontSize: 16, color: COLOR_TEXT }}>{title}</Text>
-        <Text style={{ color: COLOR_MUTED }}>{subtitle}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-    </View>
-  );
-}
-
-function Badge({
-  icon,
-  text,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  text: string;
-}) {
+function Pill({ text }: { text: string }) {
   return (
     <View
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#F1F5F9",
-        paddingHorizontal: 10,
-        paddingVertical: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        backgroundColor: "#EEF6FF",
         borderRadius: 999,
         marginRight: 8,
         marginBottom: 8,
       }}
     >
-      <Ionicons name={icon} size={16} color={COLOR_TEXT} style={{ marginRight: 6 }} />
-      <Text style={{ fontWeight: "700", color: COLOR_TEXT }}>{text}</Text>
+      <Text style={{ color: "#0F172A", fontWeight: "600" }}>{text}</Text>
     </View>
   );
 }
+
+function PromptCard({ q, a }: { q: string; a: string }) {
+  return (
+    <View
+      style={{
+        backgroundColor: "white",
+        borderRadius: 16,
+        padding: 14,
+        marginRight: 12,
+        width: W * 0.72,
+        shadowColor: "#000",
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 6 },
+      }}
+    >
+      <Text style={{ color: "#64748B", fontWeight: "800" }}>{q}</Text>
+      <Text style={{ color: "#0F172A", marginTop: 8, fontSize: 16 }}>{a}</Text>
+    </View>
+  );
+}
+
+/* ---------------- Styles ---------------- */
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: "#F7FAFF" },
+
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: PAD,
+    paddingTop: 4,
+    marginBottom: 6,
+  },
+
+  headerGradient: {
+    paddingBottom: 72,
+    borderBottomLeftRadius: 26,
+    borderBottomRightRadius: 26,
+  },
+  identityWrap: { alignItems: "center", marginTop: 6 },
+  heroAvatar: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 3,
+    borderColor: "white",
+  },
+  nameRow: { flexDirection: "row", alignItems: "center", marginTop: 10 },
+  nameText: { fontSize: 28, fontWeight: "900", color: "#0F172A" },
+  cityText: { color: "#64748B", marginTop: 4 },
+
+  // (Optional) standalone text styles if needed elsewhere
+  name: { marginTop: 12, fontSize: 22, fontWeight: "700", color: "#0F172A" },
+  city: { fontSize: 16, color: "#64748B", marginTop: 2 },
+});
