@@ -20,9 +20,10 @@ export const Colors = {
 };
 
 export const Fonts = {
-  // fallback to system if Google fonts aren’t loaded yet
-  heading: "Poppins_700Bold",
-  body: "Poppins_400Regular",
+  display: "Poppins_700Bold",
+  section: "Poppins_600SemiBold",
+  body: "Lato_400Regular",
+  label: "Lato_500Medium",
 };
 
 // NEW — Rounded corner sizes
