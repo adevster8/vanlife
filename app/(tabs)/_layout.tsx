@@ -24,47 +24,26 @@ export default function TabsLayout() {
         tabBarBackground: () => <BlurView tint="light" intensity={35} style={{ flex: 1 }} />,
       }}
     >
-      {/* 1. Discover */}
-     <Tabs.Screen
-  name="discover"
-  options={{
-    tabBarIcon: ({ color, focused }) => (
-      <Ionicons name={focused ? "compass" : "compass-outline"} size={26} color={color} />
-    ),
-  }}
-/>
-<Tabs.Screen
-  name="matches"
-  options={{
-    tabBarIcon: ({ color, focused }) => (
-      <Ionicons name={focused ? "people" : "people-outline"} size={26} color={color} />
-    ),
-  }}
-/>
-<Tabs.Screen
-  name="messages"
-  options={{
-    tabBarIcon: ({ color, focused }) => (
-      <Ionicons name={focused ? "chatbubbles" : "chatbubbles-outline"} size={26} color={color} />
-    ),
-  }}
-/>
-<Tabs.Screen
-  name="likes"
-  options={{
-    tabBarIcon: ({ color, focused }) => (
-      <Ionicons name={focused ? "heart" : "heart-outline"} size={26} color={color} />
-    ),
-  }}
-/>
-<Tabs.Screen
-  name="profile"
-  options={{
-    tabBarIcon: ({ color, focused }) => (
-      <Ionicons name={focused ? "person-circle" : "person-circle-outline"} size={28} color={color} />
-    ),
-  }}
-/>
+      <Tabs.Screen name="discover" options={{
+        tabBarIcon: ({ color, focused }) =>
+          <Ionicons name={focused ? "compass" : "compass-outline"} size={26} color={color} />
+      }}/>
+      <Tabs.Screen name="matches" options={{
+        tabBarIcon: ({ color, focused }) =>
+          <Ionicons name={focused ? "people" : "people-outline"} size={26} color={color} />
+      }}/>
+      <Tabs.Screen name="messages" options={{
+        tabBarIcon: ({ color, focused }) =>
+          <Ionicons name={focused ? "chatbubbles" : "chatbubbles-outline"} size={26} color={color} />
+      }}/>
+      <Tabs.Screen name="likes" options={{
+        tabBarIcon: ({ color, focused }) =>
+          <Ionicons name={focused ? "heart" : "heart-outline"} size={26} color={color} />
+      }}/>
+      <Tabs.Screen name="profile" options={{
+        tabBarIcon: ({ color, focused }) =>
+          <Ionicons name={focused ? "person-circle" : "person-circle-outline"} size={28} color={color} />
+      }}/>
     </Tabs>
   );
 }

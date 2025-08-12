@@ -2,19 +2,24 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import React, { useEffect, useState } from "react";
 import {
+    Alert,
     Dimensions,
     FlatList,
     Image,
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import BrandHeader from "../../components/ui/BrandHeader";
+import { signInEmail, signUpEmail } from "../../lib/AuthDemo";
+import { auth } from "../../lib/firebase";
 
 const W = Dimensions.get("window").width;
 const PAD = 16;
@@ -68,6 +73,16 @@ export default function Profile() {
   const tabBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
 
+  // Auth state
+  const [email, setEmail] = useState("testuser@example.com");
+  const [password, setPassword] = useState("Passw0rd!");
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const stop = onAuthStateChanged(auth, (u) => setUser(u));
+    return stop;
+  }, []);
+
   return (
     <SafeAreaView style={styles.safe}>
       {/* Top bar with brand logo centered */}
@@ -95,10 +110,7 @@ export default function Profile() {
           style={styles.headerGradient}
         >
           <View style={styles.identityWrap}>
-            <Image
-              source={{ uri: profile.avatar }}
-              style={styles.heroAvatar}
-            />
+            <Image source={{ uri: profile.avatar }} style={styles.heroAvatar} />
             <View style={styles.nameRow}>
               <Text style={styles.nameText}>
                 {profile.name} {profile.age}
@@ -112,6 +124,118 @@ export default function Profile() {
             </Text>
           </View>
         </LinearGradient>
+
+        {/* ===== Account (Auth test) ===== */}
+        <SectionTitle>Account</SectionTitle>
+        <SectionCard>
+          {user ? (
+            <>
+              <Text style={{ color: "#0F172A", marginBottom: 8 }}>Signed in as:</Text>
+              <Text selectable style={{ fontWeight: "800", color: "#0F172A", marginBottom: 12 }}>
+                {user.email} ({user.uid})
+              </Text>
+
+              <TouchableOpacity
+                onPress={async () => {
+                  try {
+                    await signOut(auth);
+                    Alert.alert("Signed out");
+                  } catch (e: any) {
+                    Alert.alert("Error", e.message);
+                  }
+                }}
+                style={{
+                  backgroundColor: "#0EA5E9",
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  alignItems: "center",
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: "white", fontWeight: "800" }}>Sign Out</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text style={{ color: "#0F172A" }}>Email</Text>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#E5E7EB",
+                  padding: 10,
+                  borderRadius: 10,
+                  marginTop: 6,
+                  marginBottom: 10,
+                  backgroundColor: "white",
+                }}
+              />
+
+              <Text style={{ color: "#0F172A" }}>Password</Text>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#E5E7EB",
+                  padding: 10,
+                  borderRadius: 10,
+                  marginTop: 6,
+                  marginBottom: 14,
+                  backgroundColor: "white",
+                }}
+              />
+
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <TouchableOpacity
+                  onPress={async () => {
+                    try {
+                      const u = await signUpEmail(email, password);
+                      Alert.alert("Signed up", u.uid);
+                    } catch (e: any) {
+                      Alert.alert("Sign up error", e.message);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#0EA5E9",
+                    paddingVertical: 12,
+                    borderRadius: 12,
+                    alignItems: "center",
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ color: "white", fontWeight: "800" }}>Sign Up</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={async () => {
+                    try {
+                      const u = await signInEmail(email, password);
+                      Alert.alert("Signed in", u.uid);
+                    } catch (e: any) {
+                      Alert.alert("Sign in error", e.message);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#111827",
+                    paddingVertical: 12,
+                    borderRadius: 12,
+                    alignItems: "center",
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ color: "white", fontWeight: "800" }}>Sign In</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </SectionCard>
 
         {/* Badges */}
         <SectionCard style={{ marginTop: -44, paddingVertical: 16, paddingHorizontal: 16 }}>
@@ -228,14 +352,11 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 function Badge({ icon, label, value }: { icon: any; label: string; value: string }) {
-  const COLW = (W - PAD * 2 - 16 * 2 - 12 * 2) / 3; // container paddings + 12px gaps
+  const COLW = (W - PAD * 2 - 16 * 2 - 12 * 2) / 3;
   return (
     <View style={{ alignItems: "center", width: COLW, maxWidth: COLW }}>
       <Ionicons name={icon} size={18} color="#0F172A" />
-      <Text
-        style={{ fontWeight: "800", color: "#0F172A", marginTop: 6, textAlign: "center", lineHeight: 20 }}
-        numberOfLines={2}
-      >
+      <Text style={{ fontWeight: "800", color: "#0F172A", marginTop: 6, textAlign: "center", lineHeight: 20 }} numberOfLines={2}>
         {value}
       </Text>
       <Text style={{ color: "#64748B", marginTop: 2, textAlign: "center", lineHeight: 18 }} numberOfLines={1}>
@@ -314,7 +435,6 @@ const styles = StyleSheet.create({
   nameText: { fontSize: 28, fontWeight: "900", color: "#0F172A" },
   cityText: { color: "#64748B", marginTop: 4 },
 
-  // (Optional) standalone text styles if needed elsewhere
   name: { marginTop: 12, fontSize: 22, fontWeight: "700", color: "#0F172A" },
   city: { fontSize: 16, color: "#64748B", marginTop: 2 },
 });

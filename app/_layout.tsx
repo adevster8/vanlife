@@ -1,17 +1,22 @@
-import React from "react";
+// app/_layout.tsx
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
+import SplashOverlay from "../components/SplashOverlay"; // path from /app -> /components
 
 export default function RootLayout() {
+  const [showOverlay, setShowOverlay] = useState(true);
+
+  // safety auto-hide in case onFinish doesn't fire
+  useEffect(() => {
+    const t = setTimeout(() => setShowOverlay(false), 1800);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
-    <>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }}>
-        {/* Main app tabs live in this route group */}
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        {/* Fallback for unknown routes */}
-        <Stack.Screen name="+not-found" options={{ title: "Not Found" }} />
-      </Stack>
-    </>
+    <View style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerShown: false }} />
+      {showOverlay && <SplashOverlay onFinish={() => setShowOverlay(false)} />}
+    </View>
   );
 }
