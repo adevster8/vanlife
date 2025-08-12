@@ -28,3 +28,4 @@ export type ThemeName = keyof typeof Colors;            // 'light' | 'dark'
 export type ColorName = keyof (typeof Colors)["light"]; // 'text' | 'background' | ...
 
 export default Colors;
+$$
