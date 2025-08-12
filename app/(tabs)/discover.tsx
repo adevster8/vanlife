@@ -1,16 +1,40 @@
 // app/(tabs)/discover.tsx
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import React, { useState } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import PersonProfile, { Person } from "../../components/profile/PersonProfile";
+import PersonProfile from "../../components/profile/PersonProfile";
+import BrandHeader from "../../components/ui/BrandHeader";
 import EdgeArrows from "../../components/ui/EdgeArrows";
 
+// fonts loaded in app/_layout.tsx
+const FONTS = {
+  title: "Poppins_700Bold",
+  label: "Lato_500Medium",
+};
+
+// local Person type to match PersonProfile expectations
+type Person = {
+  name: string;
+  age: number;
+  city?: string;
+  countryFlag?: string;
+  avatar: string;
+  verified?: boolean;
+  photos?: string[];
+  about?: string;
+  interests?: string[];
+  prompts?: { q: string; a: string }[];
+  meetupIdeas?: { text: string }[];
+};
 
 // ---- mock people for now ----
 const PEOPLE: Person[] = [
   {
-    name: "Sam", age: 27, city: "Austin", countryFlag: "🇺🇸",
+    name: "Sam",
+    age: 27,
+    city: "Austin",
+    countryFlag: "🇺🇸",
     avatar: "https://i.pravatar.cc/200?img=12",
     verified: true,
     photos: [
@@ -27,7 +51,10 @@ const PEOPLE: Person[] = [
     meetupIdeas: [{ text: "Greenbelt jog" }, { text: "Dog park + picnic" }],
   },
   {
-    name: "Riley", age: 29, city: "Denver", countryFlag: "🇺🇸",
+    name: "Riley",
+    age: 29,
+    city: "Denver",
+    countryFlag: "🇺🇸",
     avatar: "https://i.pravatar.cc/200?img=5",
     verified: false,
     photos: [
@@ -40,7 +67,10 @@ const PEOPLE: Person[] = [
     meetupIdeas: [{ text: "Bouldering session" }],
   },
   {
-    name: "Alex", age: 26, city: "Seattle", countryFlag: "🇺🇸",
+    name: "Alex",
+    age: 26,
+    city: "Seattle",
+    countryFlag: "🇺🇸",
     avatar: "https://i.pravatar.cc/200?img=15",
     verified: true,
     photos: [
@@ -64,11 +94,22 @@ export default function Discover() {
   const atStart = index === 0;
   const atEnd = index === PEOPLE.length - 1;
 
-  // Sit the arrows visually “flush” to the tab bar curve, but not behind it.
+  // keep arrows above the tab bar curve
   const bottomOffset = Math.max(8, tabBarHeight + insets.bottom - 6);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F7FAFF" }}>
+    <SafeAreaView style={styles.safe}>
+      {/* Header */}
+      <View style={styles.headerWrap}>
+        <BrandHeader />
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Discover</Text>
+          <Text style={styles.counter}>
+            {index + 1}/{PEOPLE.length}
+          </Text>
+        </View>
+      </View>
+
       {/* One person per screen */}
       <ScrollView contentContainerStyle={{ paddingBottom: bottomOffset + 12 }}>
         <PersonProfile
@@ -80,9 +121,21 @@ export default function Discover() {
         />
       </ScrollView>
 
-      {/* Floating circular arrows, screen-level (never clipped by cards) */}
+      {/* Floating circular arrows */}
       <EdgeArrows side="left" onPress={prev} disabled={atStart} bottom={bottomOffset} />
       <EdgeArrows side="right" onPress={next} disabled={atEnd} bottom={bottomOffset} />
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: "#F7FAFF" },
+  headerWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 8,
+  },
+  titleRow: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" },
+  title: { fontFamily: FONTS.title, fontSize: 26, color: "#0F172A", marginTop: 6 },
+  counter: { fontFamily: FONTS.label, color: "#64748B" },
+});

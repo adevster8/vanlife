@@ -2,28 +2,31 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
-    Alert,
     Dimensions,
     FlatList,
     Image,
     ScrollView,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import BrandHeader from "../../components/ui/BrandHeader";
-import { signInEmail, signUpEmail } from "../../lib/AuthDemo";
-import { auth } from "../../lib/firebase";
 
 const W = Dimensions.get("window").width;
 const PAD = 16;
-const CARD = (W - PAD * 2 - 8 * 2) / 3; // 3-column photo grid
+const CARD = (W - PAD * 2 - 8 * 2) / 3;
+
+// Fonts loaded in app/_layout.tsx
+const FONTS = {
+  display: "Poppins_700Bold",
+  section: "Poppins_600SemiBold",
+  body: "Lato_400Regular",
+  label: "Lato_500Medium",
+};
 
 // ----- Mock profile data (swap with API later) -----
 const profile = {
@@ -69,30 +72,95 @@ const profile = {
   ],
 };
 
+// --- “Why I’m here” ---
+type Intent = "dating" | "relationship" | "flings" | "friends" | "unsure";
+const INTENT_OPTIONS: { id: Intent; label: string; icon: any }[] = [
+  { id: "dating",       label: "Dating",               icon: "heart-outline" },
+  { id: "relationship", label: "Serious relationship", icon: "infinite-outline" },
+  { id: "flings",       label: "Flings",               icon: "flash-outline" },
+  { id: "friends",      label: "Friends",              icon: "people-outline" },
+  { id: "unsure",       label: "Not sure yet",         icon: "help-circle-outline" },
+];
+
+// --- “Only the Best” compact summary + editor (mock) ---
+type BestTopic =
+  | "foods" | "movies" | "countries" | "animals" | "actors" | "comedians"
+  | "music" | "books" | "sports" | "podcasts" | "games" | "apps"
+  | "cities" | "hobbies" | "drinks";
+
+const BEST_LABELS: Record<BestTopic, string> = {
+  foods: "Food",
+  movies: "Movies",
+  countries: "Countries to visit",
+  animals: "Animals",
+  actors: "Actors",
+  comedians: "Comedians",
+  music: "Music artists",
+  books: "Books",
+  sports: "Sports",
+  podcasts: "Podcasts",
+  games: "Games",
+  apps: "Apps",
+  cities: "Cities",
+  hobbies: "Hobbies",
+  drinks: "Drinks",
+};
+
+const BEST_OPTIONS: Record<BestTopic, string[]> = {
+  foods: ["Teriyaki","Burgers","Buffalo wings","Sushi","Tacos","Pho","Ramen","Pasta"],
+  movies: ["Interstellar","Inception","Her","La La Land","Parasite","Dune"],
+  countries: ["Japan","Italy","Portugal","Iceland","New Zealand","Mexico"],
+  animals: ["Dog","Cat","Otter","Red Panda","Elephant"],
+  actors: ["Denzel","Meryl","Zendaya","Gosling","Leo"],
+  comedians: ["Mulaney","Ali Wong","Bo Burnham","Hasan Minhaj","Bill Burr"],
+  music: ["Frank Ocean","SZA","Kendrick","Taylor Swift","The Weeknd"],
+  books: ["1984","Sapiens","Atomic Habits","Dune","Becoming"],
+  sports: ["Running","Climbing","Tennis","Soccer","Yoga"],
+  podcasts: ["The Daily","Radiolab","Huberman","HIBT","99PI"],
+  games: ["Zelda","Mario Kart","Stardew","Minecraft","Overcooked"],
+  apps: ["Spotify","Notion","Maps","YouTube","Reddit"],
+  cities: ["Austin","NYC","SF","Seattle","Chicago"],
+  hobbies: ["Photography","Cooking","Hiking","Writing","Gardening"],
+  drinks: ["Cold brew","Matcha","Espresso","Chai","Boba"],
+};
+
 export default function Profile() {
   const tabBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
 
-  // Auth state
-  const [email, setEmail] = useState("testuser@example.com");
-  const [password, setPassword] = useState("Passw0rd!");
-  const [user, setUser] = useState<any>(null);
+  // Why I'm here (mock)
+  const [intent, setIntent] = React.useState<Intent>("dating");
 
-  useEffect(() => {
-    const stop = onAuthStateChanged(auth, (u) => setUser(u));
-    return stop;
-  }, []);
+  // Only the Best (mock selections & editor)
+  const [best, setBest] = React.useState<Record<BestTopic, string[]>>({
+    foods: ["Teriyaki","Burgers","Buffalo wings"],
+    movies: ["Interstellar"],
+    countries: ["Japan","Italy"],
+  });
+  const [bestEditorOpen, setBestEditorOpen] = React.useState(false);
+  const [topic, setTopic] = React.useState<BestTopic>("foods");
+  const [scratch, setScratch] = React.useState<string[]>(best[topic] ?? []);
+  React.useEffect(() => setScratch(best[topic] ?? []), [topic, best]);
+
+  const toggleScratch = (item: string) => {
+    setScratch((cur) => {
+      const has = cur.includes(item);
+      if (has) return cur.filter((x) => x !== item);
+      if (cur.length >= 3) return cur;
+      return [...cur, item];
+    });
+  };
+  const saveTopic = () => setBest((prev) => ({ ...prev, [topic]: scratch }));
+  const selectedCount = (t: BestTopic) => (best[t]?.length ?? 0);
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Top bar with brand logo centered */}
+      {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity activeOpacity={0.7}>
           <Ionicons name="settings-outline" size={26} color="#0F172A" />
         </TouchableOpacity>
-
         <BrandHeader />
-
         <TouchableOpacity activeOpacity={0.7}>
           <Ionicons name="notifications-outline" size={26} color="#0F172A" />
         </TouchableOpacity>
@@ -102,7 +170,7 @@ export default function Profile() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: tabBarHeight + insets.bottom + 24 }}
       >
-        {/* Header block with gradient + avatar + identity */}
+        {/* Header */}
         <LinearGradient
           colors={["#E6F6FF", "#F7FAFF"]}
           start={{ x: 0, y: 0 }}
@@ -124,118 +192,6 @@ export default function Profile() {
             </Text>
           </View>
         </LinearGradient>
-
-        {/* ===== Account (Auth test) ===== */}
-        <SectionTitle>Account</SectionTitle>
-        <SectionCard>
-          {user ? (
-            <>
-              <Text style={{ color: "#0F172A", marginBottom: 8 }}>Signed in as:</Text>
-              <Text selectable style={{ fontWeight: "800", color: "#0F172A", marginBottom: 12 }}>
-                {user.email} ({user.uid})
-              </Text>
-
-              <TouchableOpacity
-                onPress={async () => {
-                  try {
-                    await signOut(auth);
-                    Alert.alert("Signed out");
-                  } catch (e: any) {
-                    Alert.alert("Error", e.message);
-                  }
-                }}
-                style={{
-                  backgroundColor: "#0EA5E9",
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  alignItems: "center",
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={{ color: "white", fontWeight: "800" }}>Sign Out</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <Text style={{ color: "#0F172A" }}>Email</Text>
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#E5E7EB",
-                  padding: 10,
-                  borderRadius: 10,
-                  marginTop: 6,
-                  marginBottom: 10,
-                  backgroundColor: "white",
-                }}
-              />
-
-              <Text style={{ color: "#0F172A" }}>Password</Text>
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#E5E7EB",
-                  padding: 10,
-                  borderRadius: 10,
-                  marginTop: 6,
-                  marginBottom: 14,
-                  backgroundColor: "white",
-                }}
-              />
-
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                <TouchableOpacity
-                  onPress={async () => {
-                    try {
-                      const u = await signUpEmail(email, password);
-                      Alert.alert("Signed up", u.uid);
-                    } catch (e: any) {
-                      Alert.alert("Sign up error", e.message);
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    backgroundColor: "#0EA5E9",
-                    paddingVertical: 12,
-                    borderRadius: 12,
-                    alignItems: "center",
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={{ color: "white", fontWeight: "800" }}>Sign Up</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={async () => {
-                    try {
-                      const u = await signInEmail(email, password);
-                      Alert.alert("Signed in", u.uid);
-                    } catch (e: any) {
-                      Alert.alert("Sign in error", e.message);
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    backgroundColor: "#111827",
-                    paddingVertical: 12,
-                    borderRadius: 12,
-                    alignItems: "center",
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={{ color: "white", fontWeight: "800" }}>Sign In</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </SectionCard>
 
         {/* Badges */}
         <SectionCard style={{ marginTop: -44, paddingVertical: 16, paddingHorizontal: 16 }}>
@@ -260,7 +216,7 @@ export default function Profile() {
             renderItem={({ item }) => (
               <Image
                 source={{ uri: item }}
-                style={{ width: CARD, height: CARD, borderRadius: 12, backgroundColor: "#E5E7EB" }}
+                style={{ width: CARD, height: CARD, borderRadius: 14, backgroundColor: "#E5E7EB" }}
               />
             )}
             scrollEnabled={false}
@@ -270,7 +226,23 @@ export default function Profile() {
         {/* About */}
         <SectionTitle>About</SectionTitle>
         <SectionCard>
-          <Text style={{ color: "#0F172A", lineHeight: 22 }}>{profile.about}</Text>
+          <Text style={styles.bodyText}>{profile.about}</Text>
+        </SectionCard>
+
+        {/* Why I'm here */}
+        <SectionTitle>Why I’m here</SectionTitle>
+        <SectionCard style={{ paddingVertical: 12 }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            {INTENT_OPTIONS.map((opt) => (
+              <Chip
+                key={opt.id}
+                label={opt.label}
+                icon={opt.icon}
+                selected={intent === opt.id}
+                onPress={() => setIntent(opt.id)}
+              />
+            ))}
+          </View>
         </SectionCard>
 
         {/* Get to Know Me */}
@@ -295,17 +267,151 @@ export default function Profile() {
           </View>
         </SectionCard>
 
-        {/* Meetup ideas (display only) */}
+        {/* Only the Best — compact summary */}
+        <SectionTitle>Only the Best</SectionTitle>
+        <SectionCard>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <Text style={{ fontFamily: FONTS.body, color: "#64748B" }}>
+              Pick 1–3 per topic. Topics are optional.
+            </Text>
+            <TouchableOpacity
+              onPress={() => setBestEditorOpen(true)}
+              activeOpacity={0.9}
+              style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: "#0EA5E9" }}
+            >
+              <Text style={{ fontFamily: FONTS.label, color: "white" }}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+
+          {(Object.keys(best) as BestTopic[])
+            .filter((t) => (best[t]?.length ?? 0) > 0)
+            .map((t) => (
+              <View key={t} style={{ marginTop: 10 }}>
+                <Text style={{ fontFamily: FONTS.section, fontSize: 16, color: "#0F172A", marginBottom: 6 }}>
+                  {BEST_LABELS[t]}
+                </Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                  {best[t].map((val) => (
+                    <View
+                      key={val}
+                      style={{
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        backgroundColor: "#EEF6FF",
+                        borderRadius: 999,
+                        marginRight: 8,
+                        marginBottom: 8,
+                        borderWidth: StyleSheet.hairlineWidth,
+                        borderColor: "rgba(15,23,42,0.08)",
+                      }}
+                    >
+                      <Text style={{ fontFamily: FONTS.label, color: "#0F172A" }}>{val}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+
+          {Object.values(best).every((arr) => (arr?.length ?? 0) === 0) && (
+            <Text style={{ fontFamily: FONTS.body, color: "#0F172A" }}>
+              Add a few favorites to show your vibe.
+            </Text>
+          )}
+        </SectionCard>
+
+        {/* Meetup ideas */}
         <SectionTitle>Meetup ideas</SectionTitle>
         <SectionCard>
           {profile.meetupIdeas.map((m, i) => (
             <View key={`${m.text}-${i}`} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 8 }}>
               <Ionicons name="location-outline" size={18} color="#FF5A00" />
-              <Text style={{ marginLeft: 8, color: "#0F172A" }}>{m.text}</Text>
+              <Text style={[styles.bodyText, { marginLeft: 8 }]}>{m.text}</Text>
             </View>
           ))}
         </SectionCard>
       </ScrollView>
+
+      {/* Editor Modal (simple bottom sheet) */}
+      {bestEditorOpen && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.28)", justifyContent: "flex-end" }]}>
+          <View style={{ backgroundColor: "white", borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 22 }}>
+            <View style={{ alignSelf: "center", width: 44, height: 5, borderRadius: 999, backgroundColor: "#E5E7EB", marginTop: 10 }} />
+
+            {/* topic selector */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
+              {(Object.keys(BEST_LABELS) as BestTopic[]).map((t) => {
+                const active = t === topic;
+                return (
+                  <TouchableOpacity
+                    key={t}
+                    onPress={() => setTopic(t)}
+                    style={{
+                      paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
+                      backgroundColor: active ? "#0EA5E9" : "rgba(15,23,42,0.06)",
+                      marginRight: 8,
+                    }}
+                  >
+                    <Text style={{ fontFamily: FONTS.label, color: active ? "white" : "#0F172A" }}>
+                      {BEST_LABELS[t]} {selectedCount(t) ? `• ${selectedCount(t)}` : ""}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {/* chips for current topic */}
+            <View style={{ paddingHorizontal: 16 }}>
+              <Text style={{ fontFamily: FONTS.section, fontSize: 18, color: "#0F172A", marginBottom: 8 }}>
+                {BEST_LABELS[topic]} <Text style={{ fontFamily: FONTS.label, color: "#64748B" }}>{scratch.length}/3</Text>
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                {(BEST_OPTIONS[topic] ?? []).map((item) => {
+                  const sel = scratch.includes(item);
+                  return (
+                    <TouchableOpacity
+                      key={item}
+                      onPress={() => toggleScratch(item)}
+                      activeOpacity={0.85}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 12,
+                        paddingVertical: 9,
+                        borderRadius: 999,
+                        borderWidth: StyleSheet.hairlineWidth,
+                        borderColor: sel ? "#0EA5E9" : "rgba(15,23,42,0.15)",
+                        backgroundColor: sel ? "#0EA5E9" : "rgba(255,255,255,0.95)",
+                        marginRight: 8,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <Text style={{ fontFamily: FONTS.label, color: sel ? "white" : "#0F172A" }}>{item}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* actions */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, marginTop: 6 }}>
+              <TouchableOpacity onPress={() => setBestEditorOpen(false)} style={{ padding: 12 }}>
+                <Text style={{ fontFamily: FONTS.label, color: "#64748B" }}>Skip</Text>
+              </TouchableOpacity>
+              <View style={{ flexDirection: "row" }}>
+                <TouchableOpacity onPress={() => setScratch([])} style={{ padding: 12, marginRight: 4 }}>
+                  <Text style={{ fontFamily: FONTS.label, color: "#64748B" }}>Clear</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => { saveTopic(); setBestEditorOpen(false); }}
+                  style={{ paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, backgroundColor: "#0EA5E9" }}
+                >
+                  <Text style={{ fontFamily: FONTS.label, color: "white" }}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -321,10 +427,12 @@ function SectionCard({ children, style }: { children: React.ReactNode; style?: a
           borderRadius: 18,
           padding: 16,
           marginHorizontal: PAD,
-          shadowColor: "#000",
-          shadowOpacity: 0.06,
-          shadowRadius: 14,
-          shadowOffset: { width: 0, height: 6 },
+          shadowColor: "#0F172A",
+          shadowOpacity: 0.05,
+          shadowRadius: 24,
+          shadowOffset: { width: 0, height: 10 },
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: "rgba(15,23,42,0.06)",
         },
         style,
       ]}
@@ -338,8 +446,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <Text
       style={{
+        fontFamily: FONTS.section,
         fontSize: 20,
-        fontWeight: "900",
         color: "#0F172A",
         marginHorizontal: PAD,
         marginTop: 18,
@@ -356,10 +464,28 @@ function Badge({ icon, label, value }: { icon: any; label: string; value: string
   return (
     <View style={{ alignItems: "center", width: COLW, maxWidth: COLW }}>
       <Ionicons name={icon} size={18} color="#0F172A" />
-      <Text style={{ fontWeight: "800", color: "#0F172A", marginTop: 6, textAlign: "center", lineHeight: 20 }} numberOfLines={2}>
+      <Text
+        style={{
+          fontFamily: FONTS.section,
+          color: "#0F172A",
+          marginTop: 6,
+          textAlign: "center",
+          lineHeight: 20,
+        }}
+        numberOfLines={2}
+      >
         {value}
       </Text>
-      <Text style={{ color: "#64748B", marginTop: 2, textAlign: "center", lineHeight: 18 }} numberOfLines={1}>
+      <Text
+        style={{
+          fontFamily: FONTS.label,
+          color: "#64748B",
+          marginTop: 2,
+          textAlign: "center",
+          lineHeight: 18,
+        }}
+        numberOfLines={1}
+      >
         {label}
       </Text>
     </View>
@@ -378,7 +504,7 @@ function Pill({ text }: { text: string }) {
         marginBottom: 8,
       }}
     >
-      <Text style={{ color: "#0F172A", fontWeight: "600" }}>{text}</Text>
+      <Text style={{ fontFamily: FONTS.label, color: "#0F172A" }}>{text}</Text>
     </View>
   );
 }
@@ -392,15 +518,52 @@ function PromptCard({ q, a }: { q: string; a: string }) {
         padding: 14,
         marginRight: 12,
         width: W * 0.72,
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 6 },
+        shadowColor: "#0F172A",
+        shadowOpacity: 0.05,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 8 },
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: "rgba(15,23,42,0.06)",
       }}
     >
-      <Text style={{ color: "#64748B", fontWeight: "800" }}>{q}</Text>
-      <Text style={{ color: "#0F172A", marginTop: 8, fontSize: 16 }}>{a}</Text>
+      <Text style={{ fontFamily: FONTS.label, color: "#64748B" }}>{q}</Text>
+      <Text style={{ fontFamily: FONTS.body, color: "#0F172A", marginTop: 8, fontSize: 16 }}>
+        {a}
+      </Text>
     </View>
+  );
+}
+
+function Chip({
+  label,
+  selected,
+  onPress,
+  icon,
+}: {
+  label: string;
+  selected?: boolean;
+  onPress?: () => void;
+  icon?: any;
+}) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={onPress}
+      style={[
+        styles.chip,
+        selected && styles.chipSelected,
+      ]}
+    >
+      {icon ? (
+        <Ionicons
+          name={icon}
+          size={16}
+          color={selected ? "white" : "#0F172A"}
+          style={{ marginRight: 6 }}
+        />
+      ) : null}
+      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -432,9 +595,33 @@ const styles = StyleSheet.create({
     borderColor: "white",
   },
   nameRow: { flexDirection: "row", alignItems: "center", marginTop: 10 },
-  nameText: { fontSize: 28, fontWeight: "900", color: "#0F172A" },
-  cityText: { color: "#64748B", marginTop: 4 },
 
-  name: { marginTop: 12, fontSize: 22, fontWeight: "700", color: "#0F172A" },
-  city: { fontSize: 16, color: "#64748B", marginTop: 2 },
+  nameText: { fontFamily: FONTS.display, fontSize: 28, color: "#0F172A" },
+  cityText: { fontFamily: FONTS.label, color: "#64748B", marginTop: 4 },
+  bodyText: { fontFamily: FONTS.body, color: "#0F172A", lineHeight: 22, fontSize: 16 },
+
+  // Chips
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(15,23,42,0.15)",
+    backgroundColor: "rgba(255,255,255,0.9)",
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  chipSelected: {
+    backgroundColor: "#0EA5E9",
+    borderColor: "#0EA5E9",
+  },
+  chipText: {
+    fontFamily: FONTS.label,
+    color: "#0F172A",
+  },
+  chipTextSelected: {
+    color: "white",
+  },
 });

@@ -5,13 +5,36 @@ import {
     Dimensions,
     FlatList,
     Image,
+    Pressable,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BrandHeader from "../../components/ui/BrandHeader";
+
+// layout
+const COL = 2;
+const GAP = 12;
+const H_PADDING = 16;
+const SCREEN_W = Dimensions.get("window").width;
+const CARD_W = (SCREEN_W - H_PADDING * 2 - GAP) / COL;
+
+// theme
+const BG_APP = "#F7FAFF";
+const TXT_PRIMARY = "#0F172A";
+const TXT_MUTED = "#64748B";
+const CARD_BG = "#FFFFFF";
+const CARD_BORDER = "rgba(2,6,23,0.06)";
+const BRAND_ACCENT = "#0EA5E9";
+const BRAND_WARN = "#FF5A00";
+
+// fonts loaded in app/_layout.tsx
+const FONTS = {
+  title: "Poppins_700Bold",
+  label: "Lato_500Medium",
+  body: "Lato_400Regular",
+};
 
 type Person = {
   id: string;
@@ -34,25 +57,19 @@ const YOUR_LIKES: Person[] = [
   { id: "b3", name: "Kai",  age: 29, city: "Honolulu",  avatar: "https://i.pravatar.cc/140?img=14", tags: ["beach run"] },
 ];
 
-// layout
-const COL = 2;
-const GAP = 12;
-const H_PADDING = 16;
-const SCREEN_W = Dimensions.get("window").width;
-const CARD_W = (SCREEN_W - H_PADDING * 2 - GAP) / COL;
+function Tag({ text }: { text: string }) {
+  return (
+    <View style={styles.tag}>
+      <Text style={styles.tagText}>{text}</Text>
+    </View>
+  );
+}
 
-// theme
-const BG_APP = "#F7FAFF";
-const TXT_PRIMARY = "#0F172A";
-const TXT_MUTED = "#64748B";
-const CARD_BG = "#FFFFFF";
-const CARD_BORDER = "rgba(2,6,23,0.06)";
-const CTA_BLUE_BG = "#E6F6FF";
-const CTA_ORANGE_BG = "#FFF3E6";
-const BRAND_ACCENT = "#0EA5E9";
-const BRAND_WARN = "#FF5A00";
-
-function Card({ p }: { p: Person }) {
+function Card({ p, onLike, onDismiss }: {
+  p: Person;
+  onLike?: () => void;
+  onDismiss?: () => void;
+}) {
   return (
     <View style={styles.card}>
       <Image source={{ uri: p.avatar }} style={styles.cardImage} resizeMode="cover" />
@@ -61,17 +78,23 @@ function Card({ p }: { p: Person }) {
           {p.name} <Text style={styles.age}>{p.age}</Text>
         </Text>
         <Text style={styles.city}>{p.city}</Text>
-        <Text style={styles.tags} numberOfLines={1}>
-          {p.tags.join(" • ")}
-        </Text>
+        {!!p.tags?.length && (
+          <View style={styles.tagsRow}>
+            {p.tags.slice(0, 3).map((t) => (
+              <Tag key={t} text={t} />
+            ))}
+          </View>
+        )}
 
         <View style={styles.actionsRow}>
-          <TouchableOpacity style={[styles.cta, styles.ctaBlue]} activeOpacity={0.8}>
-            <Ionicons name="heart" size={18} color={BRAND_ACCENT} />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.cta, styles.ctaOrange]} activeOpacity={0.8}>
+          <Pressable style={[styles.cta, styles.ctaLike]} onPress={onLike}>
+            <Ionicons name="heart" size={18} color="#fff" />
+            <Text style={styles.ctaLikeText}>Like</Text>
+          </Pressable>
+          <Pressable style={[styles.cta, styles.ctaPass]} onPress={onDismiss}>
             <Ionicons name="close" size={18} color={BRAND_WARN} />
-          </TouchableOpacity>
+            <Text style={styles.ctaPassText}>Pass</Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -82,7 +105,6 @@ export default function Likes() {
   return (
     <SafeAreaView style={styles.safe}>
       <FlatList
-        // Header (brand + section label)
         ListHeaderComponent={
           <View style={styles.headerWrap}>
             <BrandHeader />
@@ -93,14 +115,18 @@ export default function Likes() {
             <Text style={styles.sectionTitle}>Liked You</Text>
           </View>
         }
-        // First grid
         data={LIKED_YOU}
         keyExtractor={(i) => i.id}
         numColumns={COL}
         columnWrapperStyle={{ gap: GAP, paddingHorizontal: H_PADDING }}
         ItemSeparatorComponent={() => <View style={{ height: GAP }} />}
-        renderItem={({ item }) => <Card p={item} />}
-        // Footer (second grid)
+        renderItem={({ item }) => (
+          <Card
+            p={item}
+            onLike={() => console.log("like back", item.id)}
+            onDismiss={() => console.log("dismiss", item.id)}
+          />
+        )}
         ListFooterComponent={
           <View>
             <View style={styles.footerHeader}>
@@ -112,7 +138,13 @@ export default function Likes() {
               numColumns={COL}
               columnWrapperStyle={{ gap: GAP, paddingHorizontal: H_PADDING }}
               ItemSeparatorComponent={() => <View style={{ height: GAP }} />}
-              renderItem={({ item }) => <Card p={item} />}
+              renderItem={({ item }) => (
+                <Card
+                  p={item}
+                  onLike={() => console.log("already liked", item.id)}
+                  onDismiss={() => console.log("undo like?", item.id)}
+                />
+              )}
               scrollEnabled={false}
               contentContainerStyle={{ paddingTop: 8, paddingBottom: 24 }}
             />
@@ -135,18 +167,19 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "800",
+    fontFamily: FONTS.title,
+    fontSize: 26,
     color: TXT_PRIMARY,
+    marginTop: 6,
   },
   subtitle: {
+    fontFamily: FONTS.label,
     color: TXT_MUTED,
     marginTop: 4,
-    fontWeight: "600",
   },
   sectionTitle: {
+    fontFamily: FONTS.title,
     fontSize: 18,
-    fontWeight: "800",
     marginTop: 16,
     color: TXT_PRIMARY,
   },
@@ -161,28 +194,54 @@ const styles = StyleSheet.create({
     backgroundColor: CARD_BG,
     borderRadius: 18,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: CARD_BORDER,
   },
   cardImage: { width: "100%", height: CARD_W * 1.05 },
   cardBody: { padding: 10 },
-  name: { fontWeight: "800", fontSize: 16, color: TXT_PRIMARY },
-  age: { fontWeight: "700", color: "#334155" },
-  city: { color: TXT_MUTED, marginTop: 2, fontWeight: "600" },
-  tags: { color: TXT_PRIMARY, marginTop: 6 },
-  actionsRow: { flexDirection: "row", gap: 8, marginTop: 10 },
+
+  name: { fontFamily: FONTS.title, fontSize: 16, color: TXT_PRIMARY },
+  age: { fontFamily: FONTS.label, color: "#334155" },
+  city: { fontFamily: FONTS.label, color: TXT_MUTED, marginTop: 2 },
+
+  tagsRow: { flexDirection: "row", flexWrap: "wrap", marginTop: 8 },
+  tag: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "#EEF6FF",
+    borderRadius: 999,
+    marginRight: 6,
+    marginBottom: 6,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(15,23,42,0.08)",
+  },
+  tagText: { fontFamily: FONTS.label, color: TXT_PRIMARY, fontSize: 12 },
+
+  actionsRow: { flexDirection: "row", gap: 8, marginTop: 12 },
   cta: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 10,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  ctaBlue: { backgroundColor: CTA_BLUE_BG, borderColor: "#CBEFFF" },
-  ctaOrange: { backgroundColor: CTA_ORANGE_BG, borderColor: "#FFE1C8" },
+  ctaLike: {
+    backgroundColor: BRAND_ACCENT,
+    borderColor: BRAND_ACCENT,
+    flexDirection: "row",
+    gap: 6,
+  },
+  ctaLikeText: { fontFamily: FONTS.label, color: "white" },
+  ctaPass: {
+    backgroundColor: "#FFF3E6",
+    borderColor: "#FFE1C8",
+    flexDirection: "row",
+    gap: 6,
+  },
+  ctaPassText: { fontFamily: FONTS.label, color: BRAND_WARN },
 });
