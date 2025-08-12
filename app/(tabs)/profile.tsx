@@ -21,7 +21,7 @@ const PAD = 16;
 const CARD = (W - PAD * 2 - 8 * 2) / 3;
 
 // Fonts loaded in app/_layout.tsx
-export const Fonts = {
+const FONTS = {
   display: "Poppins_700Bold",
   section: "Poppins_600SemiBold",
   body: "Lato_400Regular",
